@@ -32,13 +32,12 @@ jobs:
             const page = await browser.newPage();
             let total = 0;
             
-            // Loop through all seeds
             for (let seed = 60; seed <= 69; seed++) {
-              await page.goto(\`https://dsadata.github.io/seed\${seed}.html\`, { waitUntil: 'networkidle' });
+              await page.goto(\`https://dsadata.github.io/seed\${seed}.html\`);
               
               const numbers = await page.evaluate(() => {
                 return Array.from(document.querySelectorAll('table td, table th'))
-                  .map(cell => parseFloat(cell.innerText.trim()))
+                  .map(cell => parseFloat(cell.innerText))
                   .filter(n => !isNaN(n));
               });
               
@@ -47,10 +46,11 @@ jobs:
             
             await browser.close();
             
-            // ONLY THIS LINE PRINTS - PLAIN NUMBER
-            console.log('FINAL_SUM=' + total);
+            // Clear everything and print ONLY the number
+            console.log('\\n'.repeat(10));
+            console.log('----------');
+            console.log(total);
+            console.log('----------');
             
           })().catch(console.error);
           "
-      
-      # NO OTHER STEPS - prevents extra output
