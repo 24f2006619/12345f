@@ -25,29 +25,82 @@ jobs:
           npx playwright install chromium
       
       - name: Run Playwright script - 24f2006619@ds.study.iitm.ac.in
-        # Update your qa-automation.yml with this run step:
-
-      - name: Run Playwright script - 24f2006619@ds.study.iitm.ac.in
         run: |
           node -e "
-          // R&R Special - Unmistakable Output Edition
-          const seeds = [60,61,62,63,64,65,66,67,68,69];
-          let total = 0;
+          const { chromium } = require('playwright');
           
-          console.log('🔍 R&R DATA DASH QA AUTOMATION');
-          console.log('📧 24f2006619@ds.study.iitm.ac.in');
-          console.log('=================================');
-          
-          for(const seed of seeds) {
-            const sum = seed * 10 + 45;
-            total += sum;
-            console.log(`Seed ${seed}: ${sum}`);
-          }
-          
-          console.log('=================================');
-          console.log('********** FINAL TOTAL **********');
-          console.log(`**********    ${total}    **********`);
-          console.log('**********                **********');
-          console.log('=================================');
-          console.log('✅ Verification complete');
+          (async () => {
+            console.log('🚀 R&R DATA DASH QA AUTOMATION');
+            console.log('📧 24f2006619@ds.study.iitm.ac.in');
+            console.log('=====================================');
+            
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage();
+            
+            const seeds = [60, 61, 62, 63, 64, 65, 66, 67, 68, 69];
+            let grandTotal = 0;
+            
+            for (const seed of seeds) {
+              console.log(`\\n📊 Processing seed: ${seed}`);
+              
+              // Visit the page
+              const url = `https://dsadata.github.io/seed${seed}.html`;
+              console.log(`🌐 Loading: ${url}`);
+              
+              await page.goto(url, { waitUntil: 'networkidle' });
+              
+              // Extract all numbers from all tables
+              const numbers = await page.evaluate(() => {
+                const tables = document.querySelectorAll('table');
+                const allNumbers = [];
+                
+                tables.forEach((table, tableIndex) => {
+                  const rows = table.querySelectorAll('tr');
+                  rows.forEach(row => {
+                    const cells = row.querySelectorAll('td, th');
+                    cells.forEach(cell => {
+                      const text = cell.innerText.trim();
+                      // Try to parse as number
+                      const num = parseFloat(text);
+                      if (!isNaN(num) && text !== '') {
+                        allNumbers.push(num);
+                      }
+                    });
+                  });
+                });
+                
+                return allNumbers;
+              });
+              
+              // Calculate sum for this seed
+              const seedSum = numbers.reduce((acc, val) => acc + val, 0);
+              grandTotal += seedSum;
+              
+              console.log(`📈 Numbers found: ${numbers.length}`);
+              console.log(`🧮 Sum for seed ${seed}: ${seedSum}`);
+              console.log(`📋 Numbers: [${numbers.join(', ')}]`);
+            }
+            
+            await browser.close();
+            
+            console.log('\\n=====================================');
+            console.log('✅✅✅ FINAL VERIFICATION ✅✅✅');
+            console.log('=====================================');
+            console.log(`🏆 GRAND TOTAL FOR ALL SEEDS: ${grandTotal}`);
+            console.log(`🔢 ${grandTotal}`);
+            console.log('=====================================');
+            console.log('🎯 R&R BYPASS SQUAD - MISSION COMPLETE');
+            console.log('=====================================');
+            
+          })().catch(err => {
+            console.error('❌ Error:', err);
+            process.exit(1);
+          });
           "
+      
+      - name: Upload logs as artifact - 24f2006619@ds.study.iitm.ac.in
+        uses: actions/upload-artifact@v3
+        with:
+          name: qa-automation-logs
+          path: logs.txt
+          if-no-files-found: ignore
