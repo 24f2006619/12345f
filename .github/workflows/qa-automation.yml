@@ -25,17 +25,12 @@ jobs:
           npx playwright install chromium
           npx playwright install-deps
       
-      - name: Run Playwright script - 24f2006619@ds.study.iitm.ac.in
+      - name: RUN SCRAPER AND OUTPUT FINAL NUMBER - 24f2006619@ds.study.iitm.ac.in
         run: |
           node -e "
           const { chromium } = require('playwright');
           
           (async () => {
-            console.log('=====================================');
-            console.log('🚀 R&R DATA DASH QA AUTOMATION');
-            console.log('📧 24f2006619@ds.study.iitm.ac.in');
-            console.log('=====================================');
-            
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage();
             
@@ -43,60 +38,30 @@ jobs:
             let grandTotal = 0;
             
             for (const seed of seeds) {
-              console.log(`\\n📊 Processing seed: \${seed}`);
+              await page.goto(\`https://dsadata.github.io/seed\${seed}.html\`, { waitUntil: 'networkidle' });
               
-              // Visit the page
-              const url = \`https://dsadata.github.io/seed\${seed}.html\`;
-              console.log(`🌐 Loading: \${url}`);
-              
-              await page.goto(url, { waitUntil: 'networkidle' });
-              
-              // Extract all numbers from all tables
               const numbers = await page.evaluate(() => {
                 const tables = document.querySelectorAll('table');
-                const allNumbers = [];
-                
+                const nums = [];
                 tables.forEach(table => {
-                  const rows = table.querySelectorAll('tr');
-                  rows.forEach(row => {
-                    const cells = row.querySelectorAll('td, th');
-                    cells.forEach(cell => {
-                      const text = cell.innerText.trim();
-                      const num = parseFloat(text);
-                      if (!isNaN(num) && text !== '') {
-                        allNumbers.push(num);
-                      }
-                    });
+                  table.querySelectorAll('td, th').forEach(cell => {
+                    const num = parseFloat(cell.innerText.trim());
+                    if (!isNaN(num)) nums.push(num);
                   });
                 });
-                
-                return allNumbers;
+                return nums;
               });
               
-              // Calculate sum for this seed
-              const seedSum = numbers.reduce((acc, val) => acc + val, 0);
-              grandTotal += seedSum;
-              
-              console.log(`📈 Numbers found: \${numbers.length}`);
-              console.log(`🧮 Sum for seed \${seed}: \${seedSum}`);
+              grandTotal += numbers.reduce((a, b) => a + b, 0);
             }
             
             await browser.close();
             
-            console.log('\\n=====================================');
-            console.log('✅✅✅ FINAL VERIFICATION ✅✅✅');
-            console.log('=====================================');
-            console.log(`🏆 GRAND TOTAL FOR ALL SEEDS: \${grandTotal}`);
-            console.log(`🔢 \${grandTotal}`);
-            console.log('=====================================');
-            console.log('🎯 R&R BYPASS SQUAD - MISSION COMPLETE');
-            console.log('=====================================');
+            // ONLY THIS LINE MATTERS - PLAIN NUMBER, NOTHING ELSE
+            console.log(grandTotal);
             
           })().catch(err => {
-            console.error('❌ Error:', err);
+            console.error(err);
             process.exit(1);
           });
           "
-      
-      # Removed upload-artifact step completely - we don't need it
-      # The answer is in the console logs where they'll look
