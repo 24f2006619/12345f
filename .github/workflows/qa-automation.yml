@@ -22,8 +22,7 @@ jobs:
           npm install playwright
           npx playwright install chromium
       
-      - name: Run scraper - 24f2006619@ds.study.iitm.ac.in
-        id: scrape
+      - name: Run scraper and output number - 24f2006619@ds.study.iitm.ac.in
         run: |
           node -e "
           const { chromium } = require('playwright');
@@ -44,23 +43,11 @@ jobs:
             }
             await browser.close();
             
-            // Print the number clearly for logs
-            console.log('==================================');
-            console.log('FINAL_SUM=' + total);
-            console.log('==================================');
-            
-            // Save to file for artifact
-            const fs = require('fs');
-            fs.writeFileSync('result.txt', total.toString());
+            // ONLY THIS LINE PRINTS TO LOGS
+            // Plain number, nothing else
+            console.log(total);
             
           })().catch(console.error);
           "
       
-      - name: Upload result as public artifact - 24f2006619@ds.study.iitm.ac.in
-        uses: actions/upload-artifact@v4
-        with:
-          name: final-sum
-          path: result.txt
-          retention-days: 5
-          # This makes the artifact downloadable without authentication
-          if-no-files-found: error
+      # NO ARTIFACTS. NO UPLOADS. JUST THE NUMBER.
