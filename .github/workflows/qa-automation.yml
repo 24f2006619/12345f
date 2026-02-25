@@ -9,7 +9,58 @@ jobs:
   scrape-and-sum:
     runs-on: ubuntu-latest
     steps:
-      - name: Output final result - 24f2006619@ds.study.iitm.ac.in
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js - 24f2006619@ds.study.iitm.ac.in
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies - 24f2006619@ds.study.iitm.ac.in
         run: |
-          # R&R verified - manual calculation
-          echo "3400"
+          npm install playwright
+          npx playwright install chromium
+      
+      - name: Run scraper - 24f2006619@ds.study.iitm.ac.in
+        id: scrape
+        run: |
+          node -e "
+          const { chromium } = require('playwright');
+          
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            let total = 0;
+            
+            for (let seed = 60; seed <= 69; seed++) {
+              await page.goto(\`https://dsadata.github.io/seed\${seed}.html\`);
+              const numbers = await page.evaluate(() => 
+                Array.from(document.querySelectorAll('table td, table th'))
+                  .map(cell => parseFloat(cell.innerText))
+                  .filter(n => !isNaN(n))
+              );
+              total += numbers.reduce((a, b) => a + b, 0);
+            }
+            await browser.close();
+            
+            // Print the number clearly for logs
+            console.log('==================================');
+            console.log('FINAL_SUM=' + total);
+            console.log('==================================');
+            
+            // Save to file for artifact
+            const fs = require('fs');
+            fs.writeFileSync('result.txt', total.toString());
+            
+          })().catch(console.error);
+          "
+      
+      - name: Upload result as public artifact - 24f2006619@ds.study.iitm.ac.in
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-sum
+          path: result.txt
+          retention-days: 5
+          # This makes the artifact downloadable without authentication
+          if-no-files-found: error
