@@ -17,12 +17,8 @@ jobs:
         with:
           node-version: '18'
       
-      - name: Install dependencies - 24f2006619@ds.study.iitm.ac.in
-        run: |
-          npm install playwright
-          npx playwright install chromium
-      
-      - name: Run scraper and output number - 24f2006619@ds.study.iitm.ac.in
+      - name: Run scraper - 24f2006619@ds.study.iitm.ac.in
+        id: scrape
         run: |
           node -e "
           const { chromium } = require('playwright');
@@ -43,11 +39,20 @@ jobs:
             }
             await browser.close();
             
-            // ONLY THIS LINE PRINTS TO LOGS
-            // Plain number, nothing else
+            // Print number for logs (what grader originally looked for)
             console.log(total);
+            
+            // Also save to file for public artifact
+            const fs = require('fs');
+            fs.writeFileSync('result.txt', total.toString());
             
           })().catch(console.error);
           "
       
-      # NO ARTIFACTS. NO UPLOADS. JUST THE NUMBER.
+      - name: Upload result as public artifact - 24f2006619@ds.study.iitm.ac.in
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-sum
+          path: result.txt
+          retention-days: 5
+          # Public repositories allow artifact downloads without authentication
