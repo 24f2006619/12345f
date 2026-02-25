@@ -1,4 +1,3 @@
-# .github/workflows/qa-automation.yml
 name: DataDash QA Automation - 24f2006619@ds.study.iitm.ac.in
 
 on:
@@ -20,48 +19,38 @@ jobs:
       
       - name: Install dependencies - 24f2006619@ds.study.iitm.ac.in
         run: |
-          npm init -y
           npm install playwright
           npx playwright install chromium
-          npx playwright install-deps
       
-      - name: RUN SCRAPER AND OUTPUT FINAL NUMBER - 24f2006619@ds.study.iitm.ac.in
+      - name: RUN SCRAPER - 24f2006619@ds.study.iitm.ac.in
         run: |
           node -e "
           const { chromium } = require('playwright');
           
           (async () => {
-            const browser = await chromium.launch({ headless: true });
+            const browser = await chromium.launch();
             const page = await browser.newPage();
+            let total = 0;
             
-            const seeds = [60, 61, 62, 63, 64, 65, 66, 67, 68, 69];
-            let grandTotal = 0;
-            
-            for (const seed of seeds) {
+            // Loop through all seeds
+            for (let seed = 60; seed <= 69; seed++) {
               await page.goto(\`https://dsadata.github.io/seed\${seed}.html\`, { waitUntil: 'networkidle' });
               
               const numbers = await page.evaluate(() => {
-                const tables = document.querySelectorAll('table');
-                const nums = [];
-                tables.forEach(table => {
-                  table.querySelectorAll('td, th').forEach(cell => {
-                    const num = parseFloat(cell.innerText.trim());
-                    if (!isNaN(num)) nums.push(num);
-                  });
-                });
-                return nums;
+                return Array.from(document.querySelectorAll('table td, table th'))
+                  .map(cell => parseFloat(cell.innerText.trim()))
+                  .filter(n => !isNaN(n));
               });
               
-              grandTotal += numbers.reduce((a, b) => a + b, 0);
+              total += numbers.reduce((a, b) => a + b, 0);
             }
             
             await browser.close();
             
-            // ONLY THIS LINE MATTERS - PLAIN NUMBER, NOTHING ELSE
-            console.log(grandTotal);
+            // ONLY THIS LINE PRINTS - PLAIN NUMBER
+            console.log('FINAL_SUM=' + total);
             
-          })().catch(err => {
-            console.error(err);
-            process.exit(1);
-          });
+          })().catch(console.error);
           "
+      
+      # NO OTHER STEPS - prevents extra output
